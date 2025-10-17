@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/usersModel');
 const {signupSchema, signinSchema}  = require('../middlewares/validator');
 const { hashPassword, comparePassword } = require('../utils/hashing');
+const transporter = require('../utils/sendMail');
+const { hmacProcess } = require('../utils/hashing');
 exports.signup = async (req, res) => {   
   const { email, password } = req.body;
   try {
@@ -54,3 +56,35 @@ exports.signin = async (req, res) => {
 exports.signout = (req, res) => {
   res.clearCookie('Authorization').status(200).json({ success: true, message: 'User signed out successfully' });
 }
+
+exports.sendVerificationCode = async (req, res) => {
+    const { email } = req.body;
+    try{
+        const existingUser = await User.findOne({ email });
+        if (!existingUser) {
+          return res.status(404).json({ success: false, message: 'User does not exist' });
+        }
+        if (existingUser.verified) {
+          return res.status(400).json({ success: false, message: 'User is already verified' });
+        }
+        const codeValue = Math.floor(Math.random() * 1000000).toString();
+        const info = await transporter.sendMail({
+            from: process.env.EMAIL_USER,
+            to: existingUser.email,
+            subject: 'Verification Code',
+            text: `Your verification code is ${codeValue}`
+        })
+        if (info.accepted[0] == existingUser.email) {
+            const hmacedCode = hmacProcess(codeValue, process.env.JWT_SECRET);
+            existingUser.verificationCode = hmacedCode;
+            existingUser.existingCodeValidation = Date.now();
+            await existingUser.save();
+            return res.status(200).json({ success: true, message: 'Verification code sent successfully', data: { code: hmacedCode } });
+        }
+        return res.status(500).json({ success: false, message: 'Failed to send verification code' });
+    }
+    catch(err){
+        console.log(err);
+        res.status(500).json({ success: false, message: 'Internal server error', data: err.message });
+    }
+};
