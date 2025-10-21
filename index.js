@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const app = express();
 const mongoose = require('mongoose');
 const authRouter = require('./routers/authRouter');
+const postRouter = require('./routers/postRouter');
 
 app.use(cors());
 
@@ -13,6 +14,7 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRouter);
+app.use('/api/posts', postRouter);
 app.get('/', (req, res) => {
   res.json({ message: 'Hello from the server!, Aryan Kushwaha' });
 });
