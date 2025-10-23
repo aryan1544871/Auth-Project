@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 const authRouter = require('./routers/authRouter');
 const postRouter = require('./routers/postRouter');
 
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 
 app.use(helmet());
 app.use(cookieParser());
