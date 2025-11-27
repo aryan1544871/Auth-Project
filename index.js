@@ -6,6 +6,7 @@ const app = express();
 const mongoose = require('mongoose');
 const authRouter = require('./routers/authRouter');
 const postRouter = require('./routers/postRouter');
+const emailRouter = require('./routers/emailRouter');
 
 app.use(cors({ origin: true, credentials: true }));
 
@@ -15,6 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use('/api/auth', authRouter);
 app.use('/api/posts', postRouter);
+app.use('/api/email', emailRouter);
 app.get('/', (req, res) => {
   res.json({ message: 'Hello from the server!, Aryan Kushwaha' });
 });
